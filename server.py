@@ -20,7 +20,7 @@ def drop(m: Msg, x_token: str = Header(None)):
         return {"err": "bad token"}
     entry = {"id": str(uuid.uuid4())[:8], **m.dict(), "status": "new"}
     messages.append(entry)
-    if len(messages) > 30:
+    if len(messages) > 50:
         messages.pop(0)
     return {"ok": True, "id": entry["id"]}
 
@@ -33,6 +33,22 @@ def pick(who: str, x_token: str = Header(None)):
             messages[i]["status"] = "read"
             return {"found": True, "msg": messages[i]}
     return {"found": False}
+
+@app.get("/pick_batch")
+def pick_batch(who: str, x_token: str = Header(None)):
+    """批量取走所有 pending 信件（方案2优化）"""
+    if x_token != TOKEN:
+        return {"err": "bad token"}
+    collected = []
+    for msg in messages:
+        if msg["to_who"] == who and msg["status"] == "new":
+            msg["status"] = "read"
+            collected.append(msg)
+    return {
+        "found": len(collected) > 0,
+        "count": len(collected),
+        "msgs": collected
+    }
 
 @app.get("/peek")
 def peek(who: str, x_token: str = Header(None)):
