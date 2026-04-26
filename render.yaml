@@ -1,0 +1,12 @@
+services:
+  - type: web
+    name: kimi-coze-mailbox
+    runtime: python
+    plan: free
+    buildCommand: pip install -r requirements.txt
+    startCommand: uvicorn server:app --host 0.0.0.0 --port 10000
+    envVars:
+      - key: PORT
+        value: 10000
+      - key: BOX_TOKEN
+        generateValue: true
